@@ -12,7 +12,20 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Render sits behind its own reverse proxy that terminates HTTPS
+        // before traffic reaches this container - without trusting it,
+        // url()/asset() would generate http:// links instead of https://.
         //
+        // Conditional on Render's own RENDER env var (which Render sets
+        // automatically on every service - see
+        // https://render.com/docs/environment-variables) rather than
+        // applied unconditionally: that keeps Laravel's normal, safer
+        // default behavior fully intact for anyone running this locally
+        // or deploying it to their own hosting instead, with nothing to
+        // manually remove.
+        if (env('RENDER')) {
+            $middleware->trustProxies(at: '*');
+        }
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
