@@ -123,6 +123,8 @@
 
         /* ============ Footer ============ */
         .site-footer{padding:1.5rem 2rem;text-align:center;color:#A1A1B5;font-size:0.8rem}
+        .site-footer a{color:#6B6B85;font-weight:600;text-decoration:none}
+        .site-footer a:hover{color:var(--indigo);text-decoration:underline}
     </style>
 </head>
 <body>
@@ -247,7 +249,7 @@
     </div>
 
     <footer class="site-footer">
-        &copy; {{ now()->year }} PromptForge
+        &copy; {{ now()->year }} PromptForge &middot; Built with love by <a href="https://publishfit.com" target="_blank" rel="noopener">PublishFit</a>
     </footer>
 
     <script>
