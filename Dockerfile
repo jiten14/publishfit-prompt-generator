@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         unzip \
         libzip-dev \
         zlib1g-dev \
+        libsqlite3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # pdo itself is already built into the base php image - only
