@@ -1,5 +1,15 @@
 FROM php:8.3-cli
 
+# Safe defaults baked directly into the image - Laravel 11+'s own
+# defaults are SESSION_DRIVER=database / CACHE_STORE=database, which
+# crashes here since there's no real database and no sessions/cache
+# table to read from. These ENV values are still fully overridden by
+# anything set in Render's dashboard (or any other host's own env
+# vars) - this is just a safe fallback, not a hard lock.
+ENV SESSION_DRIVER=file
+ENV CACHE_STORE=file
+ENV QUEUE_CONNECTION=sync
+
 # Split from the extension-install step below on purpose - if either
 # step ever fails again, the build log will point at exactly one of the
 # two, rather than a single combined command hiding which part broke.
