@@ -6,8 +6,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
+use OpenAI as OpenAIFactory;
 use OpenAI\Laravel\Facades\OpenAI;
-use OpenAI\OpenAI as OpenAIFactory;
 
 class PromptGeneratorController extends Controller
 {
@@ -108,7 +108,24 @@ class PromptGeneratorController extends Controller
                 ],
             ];
 
+            // TEMP DEBUG - DELETE THIS LOG CALL BEFORE PUBLISHING TO GITHUB.
+            // Confirms the exact request actually being sent to OpenAI -
+            // check storage/logs/laravel.log. Never includes the API key
+            // itself either way - the key only ever lives in the
+            // Authorization header the client sends, never in this
+            // payload.
+            Log::info('OpenAI request (TEMP DEBUG - remove before publishing)', $payload);
+
             $response = $client->chat()->create($payload);
+
+            // TEMP DEBUG - DELETE THIS LOG CALL BEFORE PUBLISHING TO GITHUB.
+            // The raw response - its own unique id and usage.total_tokens
+            // are the concrete proof this was a real API round-trip, not
+            // something faked or cached. OpenAI's own dashboard usage
+            // stats commonly lag a real request by several minutes, so
+            // this log is the faster way to confirm a call actually
+            // happened, rather than waiting on the dashboard to catch up.
+            Log::info('OpenAI raw response (TEMP DEBUG - remove before publishing)', $response->toArray());
 
             $result = trim($response->choices[0]->message->content ?? '');
 
