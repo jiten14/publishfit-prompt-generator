@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 use OpenAI\Laravel\Facades\OpenAI;
+use OpenAI\OpenAI as OpenAIFactory;
 
 class PromptGeneratorController extends Controller
 {
@@ -27,13 +28,15 @@ class PromptGeneratorController extends Controller
     /**
      * Reads the flashed result/error from the redirect below - both are
      * null on a plain first visit, which the view already treats as the
-     * empty state.
+     * empty state. demoMode drives whether the view shows the "Your
+     * OpenAI API Key" field at all.
      */
     public function index(): View
     {
         return view('prompt-generator', [
             'result' => session('result'),
             'error' => session('error'),
+            'demoMode' => $this->isDemoMode(),
         ]);
     }
 
@@ -51,11 +54,14 @@ class PromptGeneratorController extends Controller
      * validate() already does on a validation failure - the view's
      * old('topic') calls work identically whether this request failed
      * validation, failed calling OpenAI, or succeeded, since all three
-     * paths now flash input the same way.
+     * paths now flash input the same way. user_api_key is deliberately
+     * pulled out before this happens - see below.
      */
     public function generate(Request $request): RedirectResponse
     {
-        $data = $request->validate([
+        $isDemoMode = $this->isDemoMode();
+
+        $rules = [
             'topic' => 'required|string|max:300',
             'content_type' => 'required|string|max:100',
             'tone' => 'required|string|max:100',
@@ -63,9 +69,36 @@ class PromptGeneratorController extends Controller
             'key_points' => 'nullable|string|max:1000',
             'length' => 'required|string|max:50',
             'instructions' => 'nullable|string|max:1000',
-        ]);
+        ];
+
+        if ($isDemoMode) {
+            $rules['user_api_key'] = 'required|string|min:20';
+        }
+
+        $data = $request->validate($rules);
+
+        // Pulled out immediately, before anything else touches $data -
+        // this key must never end up in the withInput() flash below, a
+        // log line, or anywhere persistent. It exists only in this one
+        // request's memory and is discarded the instant the response is
+        // sent.
+        $userApiKey = $data['user_api_key'] ?? null;
+        unset($data['user_api_key']);
 
         try {
+            // Demo mode: a fresh client built directly from the
+            // VISITOR's own key, for this one request only - this
+            // deliberately bypasses OpenAI::chat() (the Laravel facade),
+            // since that always uses the server's own configured
+            // OPENAI_API_KEY. Every generation on a demo deployment
+            // therefore costs the visitor's own account, never yours.
+            //
+            // Normal deployment: unchanged, uses the server's own
+            // configured key via the facade, exactly as before.
+            $client = $userApiKey
+                ? OpenAIFactory::client($userApiKey)
+                : OpenAI::getFacadeRoot();
+
             $payload = [
                 'model' => self::MODEL,
                 'temperature' => self::TEMPERATURE,
@@ -75,7 +108,7 @@ class PromptGeneratorController extends Controller
                 ],
             ];
 
-            $response = OpenAI::chat()->create($payload);
+            $response = $client->chat()->create($payload);
 
             $result = trim($response->choices[0]->message->content ?? '');
 
@@ -87,12 +120,25 @@ class PromptGeneratorController extends Controller
 
             return redirect('/')
                 ->withInput($data)
-                ->with('error', 'Something went wrong generating your prompt. Please try again in a moment.');
+                ->with('error', $userApiKey
+                    ? 'Something went wrong generating your prompt. Double-check your API key is valid and has available credit, then try again.'
+                    : 'Something went wrong generating your prompt. Please try again in a moment.');
         }
 
         return redirect('/')
             ->withInput($data)
             ->with('result', $result);
+    }
+
+    /**
+     * A dedicated toggle, not tied to any specific hosting platform -
+     * set DEMO_MODE=true only on a public demo deployment (like Render);
+     * leave it unset for your own private deployment, where your own
+     * .env key is used directly with no prompt shown at all.
+     */
+    protected function isDemoMode(): bool
+    {
+        return (bool) env('DEMO_MODE');
     }
 
     /**

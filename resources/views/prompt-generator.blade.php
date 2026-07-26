@@ -30,7 +30,7 @@
         /* ============ Header ============ */
         .site-header{background-color:var(--paper);border-bottom:1px solid var(--border);padding:1.1rem 2rem}
         .logo{
-            font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.3rem;text-decoration: none;
+            font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.3rem;
             background:linear-gradient(135deg,var(--indigo),var(--indigo-deep));
             -webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:-0.01em;
         }
@@ -50,13 +50,17 @@
         .card-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.15rem;color:var(--ink)}
 
         .field{margin-top:1.25rem}
+        .demo-key-field{
+            background-color:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;
+            padding:1rem 1.1rem;margin-top:0;
+        }
         .field:first-of-type{margin-top:1.5rem}
         label{display:block;font-weight:600;font-size:0.875rem;color:var(--ink)}
         .req{color:var(--amber);font-weight:700}
         .opt{color:#A1A1B5;font-weight:400;font-size:0.78rem}
         .field-hint{margin-top:0.3rem;font-size:0.78rem;color:var(--gray)}
 
-        input[type=text], textarea, select{
+        input[type=text], input[type=password], textarea, select{
             margin-top:0.4rem;width:100%;padding:0.7rem 0.85rem;border:1px solid var(--border);
             border-radius:10px;font-size:0.92rem;font-family:'Inter',sans-serif;color:var(--ink);
             background-color:var(--paper);
@@ -139,6 +143,17 @@
 
                     <form method="POST" action="/" id="prompt-form">
                         @csrf
+
+                        @if ($demoMode ?? false)
+                            <div class="field field-full demo-key-field">
+                                <label for="user_api_key">Your OpenAI API Key <span class="req">*</span></label>
+                                <input type="password" id="user_api_key" name="user_api_key" placeholder="sk-..." autocomplete="off">
+                                <p class="field-hint">
+                                    This is a free public demo, so generation runs on <b>your own</b> OpenAI key, not ours - it's used only for this one request and is never stored, logged, or saved anywhere (not in a database, not in a cookie, not on our server). Don't have one? Get one at <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com</a>.
+                                </p>
+                                @error('user_api_key') <p class="field-hint" style="color:#DC2626">{{ $message }}</p> @enderror
+                            </div>
+                        @endif
 
                         <div class="field">
                             <label for="topic">Topic <span class="req">*</span></label>

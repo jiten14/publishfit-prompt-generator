@@ -64,7 +64,21 @@ PromptForge doesn't write the content itself — it writes the **prompt** that g
 
     `OPENAI_API_KEY` is the only one you actually need to fill in for most accounts. `OPENAI_ORGANIZATION` can stay blank unless your OpenAI account specifically requires an organization ID - see the [official openai-php/laravel docs](https://github.com/openai-php/laravel) if you're not sure.
 
-5. **Run it**
+5. **(Optional) Public demo mode**
+
+    Running this somewhere the general public can access it (like a free Render demo) with your own `OPENAI_API_KEY` set means every visitor's generation is billed to *your* account - with no login and no rate limiting, that's an open-ended cost risk.
+
+    Set this one extra variable to flip the app into demo mode instead:
+
+    ```env
+    DEMO_MODE=true
+    ```
+
+    When it's set, every visitor is asked for their **own** OpenAI API key before generating anything - it's used for that single request only and is never stored, logged, or saved anywhere (not a database, not a cookie, not a session). Your own `OPENAI_API_KEY` becomes entirely unused for actual generation once this is on, so you can safely leave it blank on a public demo deployment specifically.
+
+    Leave `DEMO_MODE` unset (the default) for your own private use, and the app behaves exactly as it did before - your `.env` key is used directly, with no prompt shown at all.
+
+6. **Run it**
 
     ```bash
     php artisan serve
