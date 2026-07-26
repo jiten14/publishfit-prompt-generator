@@ -30,7 +30,7 @@
         /* ============ Header ============ */
         .site-header{background-color:var(--paper);border-bottom:1px solid var(--border);padding:1.1rem 2rem}
         .logo{
-            font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.3rem;
+            font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.3rem;text-decoration: none;
             background:linear-gradient(135deg,var(--indigo),var(--indigo-deep));
             -webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:-0.01em;
         }
