@@ -90,6 +90,8 @@ PromptForge doesn't write the content itself — it writes the **prompt** that g
 
 Want to see it running before you set anything up? **[Try the live demo](https://publishfit-prompt-generator.onrender.com/)** — it's in demo mode, so you'll need your own OpenAI API key to generate a prompt (see [Public demo mode](#installation) above for why).
 
+This demo is hosted on [Render](https://render.com)'s free plan, which means the instance spins down after periods of inactivity. If nobody has visited recently, your first request may take 30–60 seconds to load while it spins back up — completely normal for a free-tier deployment, and everything runs smoothly afterward.
+
 - `GET /` shows the form.
 - `POST /` validates your input, sends it to OpenAI with a system prompt instructing the model to write a *prompt*, not the content itself, and renders the result on the same page next to your original input.
 - Nothing is persisted — refresh the page and it's a clean slate.
