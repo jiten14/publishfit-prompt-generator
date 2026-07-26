@@ -1,9 +1,20 @@
 FROM php:8.3-cli
 
-RUN apt-get update && apt-get install -y \
-        git unzip libzip-dev \
-    && docker-php-ext-install pdo pdo_sqlite zip \
+# Split from the extension-install step below on purpose - if either
+# step ever fails again, the build log will point at exactly one of the
+# two, rather than a single combined command hiding which part broke.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git \
+        unzip \
+        libzip-dev \
+        zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
+
+# pdo itself is already built into the base php image - only
+# pdo_sqlite genuinely needs installing. zlib1g-dev above is what zip
+# actually needs to compile against; libzip-dev alone isn't always
+# enough on this image.
+RUN docker-php-ext-install pdo_sqlite zip
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
